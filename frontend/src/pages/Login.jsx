@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 
 const Login = () => {
@@ -15,6 +15,10 @@ const Login = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 
+	// =========================
+	// Handle Input Change
+	// =========================
+
 	const handleChange = (e) => {
 		setFormData({
 			...formData,
@@ -22,20 +26,25 @@ const Login = () => {
 		});
 	};
 
+	// =========================
+	// Login
+	// =========================
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		setError("");
-		setLoading(true);
-
 		try {
-			const response = await API.post("/auth/login", formData);
+			setLoading(true);
+			setError("");
 
-			console.log("Login Response:", response.data);
-			console.log("Current User:", response.data);
+			const response = await API.post(
+				"/auth/login",
+				formData
+			);
 
 			if (response.data.success) {
 				await getCurrentUser();
+
 				navigate("/dashboard");
 			}
 		} catch (error) {
@@ -43,7 +52,7 @@ const Login = () => {
 
 			setError(
 				error.response?.data?.message ||
-				"Login failed. Please try again."
+				"Invalid email or password"
 			);
 		} finally {
 			setLoading(false);
@@ -51,53 +60,149 @@ const Login = () => {
 	};
 
 	return (
-		<div className="auth-container">
-			<div className="auth-card">
-				<h1>Login</h1>
+		<div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
 
-				<p>Login to your Trello Lite account</p>
+			<div className="container">
 
-				{error && (
-					<div className="error-message">
-						{error}
+				<div className="row justify-content-center">
+
+					<div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+						{/* Login Card */}
+
+						<div className="card border-0 shadow-lg">
+
+							<div className="card-body p-4 p-md-5">
+
+								{/* Logo */}
+
+								<div className="text-center mb-4">
+
+									<div
+										className="bg-primary text-white rounded-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
+										style={{
+											width: "58px",
+											height: "58px",
+											fontSize: "25px",
+											fontWeight: "700",
+										}}
+									>
+										T
+									</div>
+									<h2 className="fw-bold text-dark mb-2">
+										Welcome Back!
+									</h2>
+
+									<p className="text-muted mb-0">
+										Sign in to continue to Trello Lite
+									</p>
+
+								</div>
+
+								{/* Error */}
+
+								{error && (
+									<div
+										className="alert alert-danger py-2"
+										role="alert"
+									>
+										{error}
+									</div>
+								)}
+
+								{/* Login Form */}
+
+								<form onSubmit={handleSubmit}>
+
+									{/* Email */}
+
+									<div className="mb-3">
+
+										<label
+											htmlFor="email"
+											className="form-label fw-semibold"
+										>
+											Email
+										</label>
+
+										<input
+											id="email"
+											type="email"
+											name="email"
+											className="form-control form-control-lg"
+											placeholder="Enter your email"
+											value={formData.email}
+											onChange={handleChange}
+											autoComplete="email"
+											required
+										/>
+
+									</div>
+
+									{/* Password */}
+
+									<div className="mb-4">
+
+										<label
+											htmlFor="password"
+											className="form-label fw-semibold"
+										>
+											Password
+										</label>
+
+										<input
+											id="password"
+											type="password"
+											name="password"
+											className="form-control form-control-lg"
+											placeholder="Enter your password"
+											value={formData.password}
+											onChange={handleChange}
+											autoComplete="current-password"
+											required
+										/>
+
+									</div>
+
+									{/* Login Button */}
+
+									<button
+										type="submit"
+										className="btn btn-primary btn-lg w-100"
+										disabled={loading}
+									>
+										{loading ? (
+											<>
+												<span
+													className="spinner-border spinner-border-sm me-2"
+													role="status"
+												></span>
+
+												Logging in...
+											</>
+										) : (
+											"Login"
+										)}
+									</button>
+
+								</form>
+
+							</div>
+
+						</div>
+
+						{/* Bottom Text */}
+
+						<p className="text-center text-muted mt-4 small">
+							Trello Lite · Task & Project Management
+						</p>
+
 					</div>
-				)}
 
-				<form onSubmit={handleSubmit}>
-					<div className="form-group">
-						<label>Email</label>
+				</div>
 
-						<input
-							type="email"
-							name="email"
-							value={formData.email}
-							onChange={handleChange}
-							placeholder="Enter your email"
-							required
-						/>
-					</div>
-
-					<div className="form-group">
-						<label>Password</label>
-
-						<input
-							type="password"
-							name="password"
-							value={formData.password}
-							onChange={handleChange}
-							placeholder="Enter your password"
-							required
-						/>
-					</div>
-
-					<button
-						type="submit"
-						disabled={loading}
-					>
-						{loading ? "Logging in..." : "Login"}
-					</button>
-				</form>
 			</div>
+
 		</div>
 	);
 };
