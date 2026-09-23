@@ -10,6 +10,7 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [error, setError] = useState("");
@@ -24,6 +25,8 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    setError("");
   };
 
   // =========================
@@ -33,14 +36,30 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    setError("");
+
+    // Password match validation
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // Password length
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     try {
       setLoading(true);
-      setError("");
 
-      const response = await API.post(
-        "/auth/register",
-        formData
-      );
+      const response = await API.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
       if (response.data.success) {
         alert("Registration successful!");
@@ -60,37 +79,50 @@ const Register = () => {
   };
 
   return (
-    <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
+    <div
+      className="min-vh-100 d-flex align-items-center justify-content-center"
+      style={{
+        background: "#f5f7fb",
+        padding: "30px 15px",
+      }}
+    >
+      {/* Register Wrapper */}
 
       <div
-        className="card border-0 shadow-lg"
         style={{
-          width: "420px",
-          borderRadius: "16px",
+          width: "100%",
+          maxWidth: "430px",
         }}
       >
+        {/* Register Card */}
 
-        <div className="card-body p-4">
-
-          {/* ================= LOGO ================= */}
+        <div
+          className="bg-white shadow-lg"
+          style={{
+            borderRadius: "18px",
+            padding: "40px",
+          }}
+        >
+          {/* Logo */}
 
           <div className="text-center mb-4">
 
             <div
-              className="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center mx-auto mb-3"
+              className="bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm"
               style={{
-                width: "56px",
-                height: "56px",
-                fontSize: "24px",
+                width: "60px",
+                height: "60px",
+                borderRadius: "12px",
+                fontSize: "26px",
                 fontWeight: "700",
               }}
             >
               T
             </div>
 
-            <h3 className="fw-bold mb-1">
+            <h2 className="fw-bold text-dark mb-2">
               Create Account
-            </h3>
+            </h2>
 
             <p className="text-muted mb-0">
               Sign up to start using Trello Lite
@@ -98,17 +130,18 @@ const Register = () => {
 
           </div>
 
-
-          {/* ================= ERROR ================= */}
+          {/* Error */}
 
           {error && (
-            <div className="alert alert-danger py-2">
+            <div
+              className="alert alert-danger py-2"
+              role="alert"
+            >
               {error}
             </div>
           )}
 
-
-          {/* ================= FORM ================= */}
+          {/* Register Form */}
 
           <form onSubmit={handleRegister}>
 
@@ -116,82 +149,131 @@ const Register = () => {
 
             <div className="mb-3">
 
-              <label className="form-label fw-semibold">
-                Name
+              <label
+                htmlFor="name"
+                className="form-label fw-semibold"
+              >
+                Full Name
               </label>
 
               <input
+                id="name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="form-control"
-                placeholder="Enter your name"
+                className="form-control form-control-lg"
+                placeholder="Enter your full name"
+                autoComplete="name"
                 required
               />
 
             </div>
-
 
             {/* Email */}
 
             <div className="mb-3">
 
-              <label className="form-label fw-semibold">
+              <label
+                htmlFor="email"
+                className="form-label fw-semibold"
+              >
                 Email
               </label>
 
               <input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="form-control"
+                className="form-control form-control-lg"
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
 
             </div>
 
-
             {/* Password */}
 
-            <div className="mb-4">
+            <div className="mb-3">
 
-              <label className="form-label fw-semibold">
+              <label
+                htmlFor="password"
+                className="form-label fw-semibold"
+              >
                 Password
               </label>
 
               <input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="form-control"
-                placeholder="Enter your password"
+                className="form-control form-control-lg"
+                placeholder="Create a password"
+                autoComplete="new-password"
                 minLength="6"
                 required
               />
 
+              <small className="text-muted">
+                Minimum 6 characters
+              </small>
+
             </div>
 
+            {/* Confirm Password */}
+
+            <div className="mb-4">
+
+              <label
+                htmlFor="confirmPassword"
+                className="form-label fw-semibold"
+              >
+                Confirm Password
+              </label>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="form-control form-control-lg"
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                required
+              />
+
+            </div>
 
             {/* Register Button */}
 
             <button
               type="submit"
-              className="btn btn-primary w-100 py-2 fw-semibold"
+              className="btn btn-primary btn-lg w-100 fw-semibold"
               disabled={loading}
             >
-              {loading
-                ? "Creating Account..."
-                : "Sign Up"}
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+
+                  Creating Account...
+                </>
+              ) : (
+                "Sign Up"
+              )}
             </button>
 
           </form>
 
-
-          {/* ================= LOGIN LINK ================= */}
+          {/* Login Link */}
 
           <div className="text-center mt-4">
 
@@ -209,6 +291,12 @@ const Register = () => {
           </div>
 
         </div>
+
+        {/* Footer */}
+
+        <p className="text-center text-muted mt-4 small">
+          Trello Lite · Task & Project Management
+        </p>
 
       </div>
 
