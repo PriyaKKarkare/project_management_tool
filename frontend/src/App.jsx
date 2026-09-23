@@ -1,21 +1,28 @@
 import { Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ProjectBoard from "./pages/ProjectBoard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
 
-      {/* Public Route */}
+      {/* Login */}
       <Route
         path="/login"
         element={<Login />}
       />
 
-      {/* Protected Route */}
+      {/* Register */}
+      <Route
+        path="/register"
+        element={<Register />}
+      />
+
+      {/* Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -25,7 +32,7 @@ function App() {
         }
       />
 
-
+      {/* Project Board */}
       <Route
         path="/projects/:projectId"
         element={
@@ -35,7 +42,7 @@ function App() {
         }
       />
 
-      {/* Default Route */}
+      {/* Default */}
       <Route
         path="/"
         element={<Login />}

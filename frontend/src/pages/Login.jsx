@@ -1,210 +1,231 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 
 const Login = () => {
-	const navigate = useNavigate();
-	const { getCurrentUser } = useAuth();
+  const navigate = useNavigate();
 
-	const [formData, setFormData] = useState({
-		email: "",
-		password: "",
-	});
+  const { setUser } = useAuth();
 
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-	// =========================
-	// Handle Input Change
-	// =========================
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-	const handleChange = (e) => {
-		setFormData({
-			...formData,
-			[e.target.name]: e.target.value,
-		});
-	};
+  // =========================
+  // Handle Input Change
+  // =========================
 
-	// =========================
-	// Login
-	// =========================
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+  // =========================
+  // Login
+  // =========================
 
-		try {
-			setLoading(true);
-			setError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-			const response = await API.post(
-				"/auth/login",
-				formData
-			);
+    try {
+      setLoading(true);
+      setError("");
 
-			if (response.data.success) {
-				await getCurrentUser();
+      const response = await API.post(
+        "/auth/login",
+        formData
+      );
 
-				navigate("/dashboard");
-			}
-		} catch (error) {
-			console.error("Login Error:", error);
+      if (response.data.success) {
+        // Login response madhla user direct context madhe save
+        setUser(response.data.user);
 
-			setError(
-				error.response?.data?.message ||
-				"Invalid email or password"
-			);
-		} finally {
-			setLoading(false);
-		}
-	};
+        // Dashboard var redirect
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
 
-	return (
-		<div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
+      setError(
+        error.response?.data?.message ||
+          "Invalid email or password"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-			<div className="container">
+  return (
+    <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
 
-				<div className="row justify-content-center">
+      <div className="container">
 
-					<div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+        <div className="row justify-content-center">
 
-						{/* Login Card */}
+          <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
 
-						<div className="card border-0 shadow-lg">
+            {/* Login Card */}
 
-							<div className="card-body p-4 p-md-5">
+            <div className="card border-0 shadow-lg">
 
-								{/* Logo */}
+              <div className="card-body p-4 p-md-5">
 
-								<div className="text-center mb-4">
+                {/* Logo */}
 
-									<div
-										className="bg-primary text-white rounded-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
-										style={{
-											width: "58px",
-											height: "58px",
-											fontSize: "25px",
-											fontWeight: "700",
-										}}
-									>
-										T
-									</div>
-									<h2 className="fw-bold text-dark mb-2">
-										Welcome Back!
-									</h2>
+                <div className="text-center mb-4">
 
-									<p className="text-muted mb-0">
-										Sign in to continue to Trello Lite
-									</p>
+                  <div
+                    className="bg-primary text-white rounded-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
+                    style={{
+                      width: "58px",
+                      height: "58px",
+                      fontSize: "25px",
+                      fontWeight: "700",
+                    }}
+                  >
+                    T
+                  </div>
 
-								</div>
+                  <h2 className="fw-bold text-dark mb-2">
+                    Welcome Back!
+                  </h2>
 
-								{/* Error */}
+                  <p className="text-muted mb-0">
+                    Sign in to continue to Trello Lite
+                  </p>
 
-								{error && (
-									<div
-										className="alert alert-danger py-2"
-										role="alert"
-									>
-										{error}
-									</div>
-								)}
+                </div>
 
-								{/* Login Form */}
+                {/* Error */}
 
-								<form onSubmit={handleSubmit}>
+                {error && (
+                  <div
+                    className="alert alert-danger py-2"
+                    role="alert"
+                  >
+                    {error}
+                  </div>
+                )}
 
-									{/* Email */}
+                {/* Login Form */}
 
-									<div className="mb-3">
+                <form onSubmit={handleSubmit}>
 
-										<label
-											htmlFor="email"
-											className="form-label fw-semibold"
-										>
-											Email
-										</label>
+                  {/* Email */}
 
-										<input
-											id="email"
-											type="email"
-											name="email"
-											className="form-control form-control-lg"
-											placeholder="Enter your email"
-											value={formData.email}
-											onChange={handleChange}
-											autoComplete="email"
-											required
-										/>
+                  <div className="mb-3">
 
-									</div>
+                    <label
+                      htmlFor="email"
+                      className="form-label fw-semibold"
+                    >
+                      Email
+                    </label>
 
-									{/* Password */}
+                    <input
+                      id="email"
+                      type="email"
+                      name="email"
+                      className="form-control form-control-lg"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      autoComplete="email"
+                      required
+                    />
 
-									<div className="mb-4">
+                  </div>
 
-										<label
-											htmlFor="password"
-											className="form-label fw-semibold"
-										>
-											Password
-										</label>
+                  {/* Password */}
 
-										<input
-											id="password"
-											type="password"
-											name="password"
-											className="form-control form-control-lg"
-											placeholder="Enter your password"
-											value={formData.password}
-											onChange={handleChange}
-											autoComplete="current-password"
-											required
-										/>
+                  <div className="mb-4">
 
-									</div>
+                    <label
+                      htmlFor="password"
+                      className="form-label fw-semibold"
+                    >
+                      Password
+                    </label>
 
-									{/* Login Button */}
+                    <input
+                      id="password"
+                      type="password"
+                      name="password"
+                      className="form-control form-control-lg"
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      autoComplete="current-password"
+                      required
+                    />
 
-									<button
-										type="submit"
-										className="btn btn-primary btn-lg w-100"
-										disabled={loading}
-									>
-										{loading ? (
-											<>
-												<span
-													className="spinner-border spinner-border-sm me-2"
-													role="status"
-												></span>
+                  </div>
 
-												Logging in...
-											</>
-										) : (
-											"Login"
-										)}
-									</button>
+                  {/* Login Button */}
 
-								</form>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-lg w-100"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                        ></span>
 
-							</div>
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </button>
 
-						</div>
+                </form>
 
-						{/* Bottom Text */}
+                {/* Signup */}
 
-						<p className="text-center text-muted mt-4 small">
-							Trello Lite · Task & Project Management
-						</p>
+                <div className="text-center mt-4">
 
-					</div>
+                  <span className="text-muted">
+                    Don't have an account?{" "}
+                  </span>
 
-				</div>
+                  <Link
+                    to="/register"
+                    className="text-primary fw-semibold text-decoration-none"
+                  >
+                    Sign Up
+                  </Link>
 
-			</div>
+                </div>
 
-		</div>
-	);
+              </div>
+
+            </div>
+
+            {/* Bottom Text */}
+
+            <p className="text-center text-muted mt-4 small">
+              Trello Lite · Task & Project Management
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
 };
 
 export default Login;

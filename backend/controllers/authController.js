@@ -2,7 +2,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// ==========================================
+// Cookie Options
+// ==========================================
+
+const cookieOptions = {
+  httpOnly: true,
+
+  secure: process.env.NODE_ENV === "production",
+
+  sameSite:
+    process.env.NODE_ENV === "production"
+      ? "none"
+      : "lax",
+
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+// ==========================================
 // Generate JWT
+// ==========================================
+
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -16,12 +36,14 @@ const generateToken = (user) => {
   );
 };
 
-// Register User
+// ==========================================
+// Register
+// ==========================================
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // 1. Check required fields
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -29,7 +51,6 @@ const register = async (req, res) => {
       });
     }
 
-    // 2. Validate password length
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -37,7 +58,6 @@ const register = async (req, res) => {
       });
     }
 
-    // 3. Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
@@ -47,9 +67,10 @@ const register = async (req, res) => {
       });
     }
 
-    // 4. Check existing user
+    const cleanEmail = email.toLowerCase().trim();
+
     const existingUser = await User.findOne({
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
     });
 
     if (existingUser) {
@@ -59,28 +80,18 @@ const register = async (req, res) => {
       });
     }
 
-    // 5. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 6. Create user
     const user = await User.create({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
       password: hashedPassword,
     });
 
-    // 7. Generate JWT
     const token = generateToken(user);
 
-    // 8. Store JWT in HttpOnly cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, cookieOptions);
 
-    // 9. Send response
     return res.status(201).json({
       success: true,
       message: "Registration successful",
@@ -101,11 +112,14 @@ const register = async (req, res) => {
   }
 };
 
+// ==========================================
+// Login
+// ==========================================
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Check required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -113,13 +127,12 @@ const login = async (req, res) => {
       });
     }
 
-    // 2. Find user
-    // password: select:false असल्यामुळे +password वापरतो
+    const cleanEmail = email.toLowerCase().trim();
+
     const user = await User.findOne({
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
     }).select("+password");
 
-    // 3. Check user
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -127,7 +140,6 @@ const login = async (req, res) => {
       });
     }
 
-    // 4. Compare password
     const isPasswordCorrect = await bcrypt.compare(
       password,
       user.password
@@ -140,18 +152,11 @@ const login = async (req, res) => {
       });
     }
 
-    // 5. Generate JWT
     const token = generateToken(user);
 
-    // 6. Store JWT in HttpOnly Cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // Set JWT cookie
+    res.cookie("token", token, cookieOptions);
 
-    // 7. Send response
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -172,6 +177,10 @@ const login = async (req, res) => {
   }
 };
 
+// ==========================================
+// Get Current User
+// ==========================================
+
 const getMe = async (req, res) => {
   try {
     return res.status(200).json({
@@ -179,6 +188,8 @@ const getMe = async (req, res) => {
       user: req.user,
     });
   } catch (error) {
+    console.error("Get Me Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -186,13 +197,13 @@ const getMe = async (req, res) => {
   }
 };
 
+// ==========================================
+// Logout
+// ==========================================
+
 const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-    });
+    res.clearCookie("token", cookieOptions);
 
     return res.status(200).json({
       success: true,
@@ -207,9 +218,10 @@ const logout = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   register,
   login,
   getMe,
-  logout
+  logout,
 };
